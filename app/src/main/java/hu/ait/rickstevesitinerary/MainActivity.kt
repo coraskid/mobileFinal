@@ -16,11 +16,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dagger.hilt.android.AndroidEntryPoint
 import hu.ait.rickstevesitinerary.ui.navigation.MainNavigation
 import hu.ait.rickstevesitinerary.ui.theme.RickStevesItineraryTheme
 import hu.ait.rickstevesitinerary.ui.screen.MainScreen
 import hu.ait.rickstevesitinerary.ui.screen.DetailScreen
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,4 +1,8 @@
 package hu.ait.rickstevesitinerary
 
-class MainApplication {
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class MainApplication : Application() {
 }

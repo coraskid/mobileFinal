@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -79,9 +81,16 @@ fun MainScreen(
             )
         },
         content = {
-            ItineraryListContent(Modifier.padding(it))
+            ItineraryListContent(
+                Modifier.padding(it),
+                itineraryViewModel,
+                onNavigateToDetail
+            )
             if (showAddDialog) {
-                AddNewTodoDialog()
+                AddNewItineraryDialog(itineraryViewModel,
+                    onDismissRequest = {
+                        showAddDialog = false
+                    })
             }
         }
     )
@@ -89,11 +98,11 @@ fun MainScreen(
 
 @Composable
 fun ItineraryListContent(
-    modifier: Modifier
-    //view model
-    //navigate
+    modifier: Modifier,
+    itineraryViewModel: ItineraryViewModel,
+    onNavigateToDetail: (String, String) -> Unit
 ) {
-    val itineraryList by itineraryViewModel.getAllItineraryList()
+    val itineraryList by itineraryViewModel.getAllItinerary()
         .collectAsState(initial = emptyList())
 
     var showEditItineraryDialog by rememberSaveable {
@@ -111,13 +120,18 @@ fun ItineraryListContent(
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(itineraryList) {
-                    ItineraryCard(
+                    ItineraryCard(it,
+                        onRemoveItinerary = {itineraryViewModel.removeItinerary(it)},
+                        onEditItinerary = {
+                            itineraryToEdit = it
+                            showEditItineraryDialog = true
+                        }
                         //stuff for itinerary card
                     )
                 }
             }
             if (showEditItineraryDialog) {
-                AddNewItineraryDialog() {
+                AddNewItineraryDialog(itineraryViewModel, itineraryToEdit) {
                     showEditItineraryDialog = false
                 }
             }
@@ -128,7 +142,7 @@ fun ItineraryListContent(
 @Composable
 fun ItineraryCard(
     itinerary: Itinerary,
-    onItineraryCheckChange: (Boolean) -> Unit = {},
+    //onItineraryCheckChange: (Boolean) -> Unit = {},
     onRemoveItinerary: () -> Unit = {},
     onEditItinerary: (Itinerary) -> Unit = {}
 ) {
@@ -179,8 +193,8 @@ fun ItineraryCard(
 }
 
 @Composable
-fun AddNewTodoDialog(
-    // view model
+fun AddNewItineraryDialog(
+    itineraryViewModel: ItineraryViewModel,
     itineraryToEdit: Itinerary? = null,
     onDismissRequest: () -> Unit
 ) {
@@ -231,8 +245,8 @@ fun AddNewTodoDialog(
                                 Itinerary(
                                     title = "Something with place and start and end",
                                     place = itineraryPlace,
-                                    startDate = itineraryStart,
-                                    endDate = itineraryEnd,
+                                    startDate = 1,//itineraryStart,
+                                    endDate = 1,//itineraryEnd,
                                     comment = itineraryComments,
                                     details = ""
                                 )
@@ -241,8 +255,8 @@ fun AddNewTodoDialog(
                             val editedItinerary = itineraryToEdit.copy(
                                 title = "Something with place and start and end",
                                 place = itineraryPlace,
-                                startDate = itineraryStart,
-                                endDate = itineraryEnd,
+                                startDate = 1,//itineraryStart,
+                                endDate = 1,//itineraryEnd,
                                 comment = itineraryComments,
                             )
                             itineraryViewModel.editItinerary(editedItinerary)
