@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
@@ -41,13 +42,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import hu.ait.rickstevesitinerary.data.Itinerary
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    //itinerary view model
-    //naviagate
+    itineraryViewModel: ItineraryViewModel = hiltViewModel(),
+    onNavigateToDetail: (String, String) -> Unit
 ) {
     //coroutine
     var showAddDialog by rememberSaveable {
