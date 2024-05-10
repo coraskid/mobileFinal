@@ -1,13 +1,16 @@
 package hu.ait.rickstevesitinerary.ui.screen
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -34,10 +37,15 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.ait.rickstevesitinerary.data.Itinerary
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +84,7 @@ fun MainScreen(
                     }
 
                     IconButton(onClick = {
-                        //clear all itineraries in view motel
+                        itineraryViewModel.clearAllItineraries()
                     }) {
                         Icon(Icons.Filled.Delete,null)
                     }
@@ -115,17 +126,19 @@ fun ItineraryListContent(
     Column(
         modifier = modifier
     ) {
-        if (true) { // change to if list is empty
+        if (itineraryList.isEmpty()) { // change to if list is empty
             Text(text = "No Itineraries")
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(itineraryList) {
+                    Log.i("MyActivity", "test")
                     ItineraryCard(it,
                         onRemoveItinerary = {itineraryViewModel.removeItinerary(it)},
                         onEditItinerary = {
                             itineraryToEdit = it
                             showEditItineraryDialog = true
-                        }
+                        },
+                        onNavigateToDetail
                         //stuff for itinerary card
                     )
                 }
@@ -144,9 +157,10 @@ fun ItineraryCard(
     itinerary: Itinerary,
     //onItineraryCheckChange: (Boolean) -> Unit = {},
     onRemoveItinerary: () -> Unit = {},
-    onEditItinerary: (Itinerary) -> Unit = {}
+    onEditItinerary: (Itinerary) -> Unit = {},
+    onNavigateToDetail: (String, String) -> Unit
 ) {
-    //var expanded by rememberSaveable { mutableStateOf(false)} //may not need?
+    var coroutineScope = rememberCoroutineScope()
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -155,7 +169,13 @@ fun ItineraryCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
-        modifier = Modifier.padding(5.dp)
+        modifier = Modifier
+            .padding(5.dp)
+            .clickable(onClick = {
+                coroutineScope.launch {
+                    onNavigateToDetail(itinerary.details, itinerary.place)
+                }
+            })
     ) {
         Column(
             modifier = Modifier
@@ -167,8 +187,8 @@ fun ItineraryCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 //Image goes here if you want
-                Text(itinerary.title, modifier = Modifier.fillMaxWidth(.2f))
-                Spacer(modifier = Modifier.fillMaxSize(.55f))
+                Text(itinerary.place, modifier = Modifier.fillMaxWidth(.2f))
+                Spacer(modifier = Modifier.fillMaxSize(.75f))
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Edit",
@@ -202,10 +222,16 @@ fun AddNewItineraryDialog(
         mutableStateOf(itineraryToEdit?.place ?: "")
     }
     var itineraryStart by rememberSaveable {
-        mutableStateOf(itineraryToEdit?.startDate ?: "") //change starting date to some date class
+        mutableStateOf(itineraryToEdit?.startDate ?: "Select Start Date") //change starting date to some date class
+    }
+    var showDateStartDialog by rememberSaveable {
+        mutableStateOf(false)
     }
     var itineraryEnd by rememberSaveable {
-        mutableStateOf(itineraryToEdit?.endDate ?: "") // also change
+        mutableStateOf(itineraryToEdit?.endDate ?: "Select End Date") // also change
+    }
+    var showDateEndDialog by rememberSaveable {
+        mutableStateOf(false)
     }
     var itineraryComments by rememberSaveable {
         mutableStateOf(itineraryToEdit?.comment ?: "")
@@ -233,7 +259,16 @@ fun AddNewItineraryDialog(
                     onValueChange = { itineraryPlace = it },
                     label = { Text(text = "Enter Destination here:") }
                 )
-                //start and end stuff
+                Box(contentAlignment = Alignment.Center) {
+                    Button(onClick = { showDateStartDialog = true }) {
+                        Text(text = itineraryStart)
+                    }
+                }
+                Box(contentAlignment = Alignment.Center) {
+                    Button(onClick = { showDateEndDialog = true }) {
+                        Text(text = itineraryEnd)
+                    }
+                }
                 //comments
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -245,8 +280,8 @@ fun AddNewItineraryDialog(
                                 Itinerary(
                                     title = "Something with place and start and end",
                                     place = itineraryPlace,
-                                    startDate = 1,//itineraryStart,
-                                    endDate = 1,//itineraryEnd,
+                                    startDate = itineraryStart,
+                                    endDate = itineraryEnd,
                                     comment = itineraryComments,
                                     details = ""
                                 )
@@ -255,8 +290,8 @@ fun AddNewItineraryDialog(
                             val editedItinerary = itineraryToEdit.copy(
                                 title = "Something with place and start and end",
                                 place = itineraryPlace,
-                                startDate = 1,//itineraryStart,
-                                endDate = 1,//itineraryEnd,
+                                startDate = itineraryStart,
+                                endDate = itineraryEnd,
                                 comment = itineraryComments,
                             )
                             itineraryViewModel.editItinerary(editedItinerary)
@@ -269,8 +304,96 @@ fun AddNewItineraryDialog(
                         Text(text = "Cancel")
                     }
                 }
+                if (showDateStartDialog){
+                    MyDatePickerDialog(
+                        onDateSelected = { itineraryStart = it },
+                        onDismiss = { showDateStartDialog = false }
+                    )
+                }
+                if (showDateEndDialog){
+                    MyDatePickerDialog(
+                        onDateSelected = { itineraryEnd = it },
+                        onDismiss = { showDateEndDialog = false }
+                    )
+                }
             }
+            
         }
     }
 
+}
+
+
+//Code from https://medium.com/@rahulchaurasia3592/material3-datepicker-and-datepickerdialog-in-compose-in-android-54ec28be42c3
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyDatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
+        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+            return utcTimeMillis <= System.currentTimeMillis()
+        }
+    })
+
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        convertMillisToDate(it)
+    } ?: ""
+
+    DatePickerDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            Button(onClick = {
+                onDateSelected(selectedDate)
+                onDismiss()
+            }
+
+            ) {
+                Text(text = "OK")
+            }
+        },
+        dismissButton = {
+            Button(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "Cancel")
+            }
+        }
+    ) {
+        DatePicker(
+            state = datePickerState
+        )
+    }
+}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun DatePickerView() {
+//    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
+//        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+//            return utcTimeMillis <= System.currentTimeMillis()
+//        }
+//    })
+//    val selectedDate = datePickerState.selectedDateMillis?.let {
+//        convertMillisToDate(it)
+//    }
+//    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//        DatePicker(
+//            state = datePickerState
+//        )
+//        Spacer(
+//            modifier = Modifier.height(
+//                32.dp
+//            )
+//        )
+//        Text(
+//            text = selectedDate.toString(),
+//            color = Color.Red
+//        )
+//    }
+//}
+
+private fun convertMillisToDate(millis: Long): String {
+    val formatter = SimpleDateFormat("dd/MM/yyyy")
+    return formatter.format(Date(millis))
 }
