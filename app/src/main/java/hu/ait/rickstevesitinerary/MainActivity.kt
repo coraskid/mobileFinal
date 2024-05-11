@@ -50,22 +50,31 @@ fun ItinAppNavHost(
         modifier = modifier, navController = navController, startDestination = startDestination
     ) {
         composable(MainNavigation.MainScreen.route) {
-            MainScreen { itin, place ->
-                navController.navigate(MainNavigation.DetailScreen.createRoute(itin, place))
+            MainScreen { place, start, end, comments, itin ->
+                navController.navigate(MainNavigation.DetailScreen.createRoute(place, start, end, comments, itin))
             }
         }
         composable(MainNavigation.DetailScreen.route,
             // extract all and important arguments
             arguments = listOf(
-                navArgument("itin"){type = NavType.StringType},
-                navArgument("place"){type = NavType.StringType})
+                navArgument("place"){type = NavType.StringType},
+                navArgument("start"){type = NavType.StringType},
+                navArgument("end"){type = NavType.StringType},
+                navArgument("comments"){type = NavType.StringType},
+                navArgument("itin"){type = NavType.StringType})
         ) {
-            val itin = it.arguments?.getString("itin")
             val place = it.arguments?.getString("place")
-            if (place != null && itin != null) {
+            val start = it.arguments?.getString("start")
+            val end = it.arguments?.getString("end")
+            val comments = it.arguments?.getString("comments")?: ""
+            val itin = it.arguments?.getString("itin")
+            if (place != null && itin != null && start != null && end != null) {
                 DetailScreen(
-                    itin = itin,
-                    place = place
+                    place = place,
+                    start = start,
+                    end = end,
+                    comments = comments,
+                    itin = itin
                 )
             }
         }

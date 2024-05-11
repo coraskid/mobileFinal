@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "itintable")
 data class Itinerary(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
-    @ColumnInfo(name = "Title") val title:String,
     @ColumnInfo(name = "Place") val place:String,
     @ColumnInfo(name = "Start Date") val startDate: String, //change to some date thing
     @ColumnInfo(name = "End Date") val endDate: String,

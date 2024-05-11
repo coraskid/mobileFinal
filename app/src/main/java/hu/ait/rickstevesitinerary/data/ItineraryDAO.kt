@@ -17,12 +17,6 @@ interface ItineraryDAO {
     @Query("SELECT * from itintable WHERE id = :id")
     fun getTodo(id: Int): Flow<Itinerary>
 
-//    @Query("SELECT COUNT(*) from todotable")
-//    suspend fun getTodosNum(): Int
-//
-//    @Query("""SELECT COUNT(*) from todotable WHERE priority="HIGH"""")
-//    suspend fun getImportantTodosNum(): Int
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(itinerary: Itinerary)
 

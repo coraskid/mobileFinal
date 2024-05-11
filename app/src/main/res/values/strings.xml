@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">RickStevesItinerary</string>
+    <string name="rick_steve_s_itineraries">Rick Steve\'s Itineraries</string>
+    <string name="no_itineraries">No Itineraries</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="error_no_place_entered">Error: No Place Entered</string>
+    <string name="error_no_start_date_entered">Error: No Start Date Entered</string>
+    <string name="error_no_end_date_entered">Error: No End Date Entered</string>
+    <string name="create_itinerary">Create Itinerary</string>
+    <string name="edit_details">Edit Details</string>
+    <string name="enter_destination_here">Enter Destination Here</string>
+    <string name="enter_additional_comments_here">Enter Additional Comments Here</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="destination">"Destination: "</string>
+    <string name="arriving">"Arriving: "</string>
+    <string name="departing">"Departing: "</string>
+    <string name="additional_comments_requested">"Additional Comments Requested: "</string>
+    <string name="itinerary">"Itinerary: "</string>
 </resources>
