@@ -56,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.ait.rickstevesitinerary.R
 import hu.ait.rickstevesitinerary.data.Itinerary
 import kotlinx.coroutines.launch
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -295,7 +296,7 @@ fun AddNewItineraryDialog(
                             errorMsg = noPlace
                         } else if (itineraryStart == "Select Start Date" || itineraryStart == ""){
                             errorMsg = noStart
-                        } else if (itineraryEnd == "Select End Date" || itineraryStart == ""){
+                        } else if (itineraryEnd == "Select End Date" || itineraryEnd == ""){
                             errorMsg = noEnd
                         } else {
                             if (itineraryToEdit == null) {
@@ -331,12 +332,18 @@ fun AddNewItineraryDialog(
                 
                 if (showDateStartDialog){
                     MyDatePickerDialog(
+                        curr = itineraryStart,
+                        maxMin = itineraryEnd,
+                        isStartDate = true,
                         onDateSelected = { itineraryStart = it },
                         onDismiss = { showDateStartDialog = false }
                     )
                 }
                 if (showDateEndDialog){
                     MyDatePickerDialog(
+                        curr = itineraryEnd,
+                        maxMin = itineraryStart,
+                        isStartDate = false,
                         onDateSelected = { itineraryEnd = it },
                         onDismiss = { showDateEndDialog = false }
                     )
@@ -353,14 +360,41 @@ fun AddNewItineraryDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
+    curr: String,
+    maxMin: String,
+    isStartDate: Boolean,
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
-        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-            return utcTimeMillis > System.currentTimeMillis() //  <- this is for only past dates
-        }
-    })
+
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                var otherDate = convertDateToMillis(maxMin)
+                //You are adjusting the startdate
+                if (isStartDate){
+                    //You have been given a valid end date (thus greater than curr and less than end
+                    if (otherDate != null){
+                        return utcTimeMillis > System.currentTimeMillis() && utcTimeMillis <= otherDate
+                    } else { // No end date, just greater than current
+                        return utcTimeMillis > System.currentTimeMillis()
+                    }
+                } else { //adjusting end date
+                    //given a start date, so has to be greater than that
+                    if (otherDate != null) {
+                        return utcTimeMillis > otherDate
+                    } else { // no start date give, so has to be greater than current.
+                        return utcTimeMillis > System.currentTimeMillis()
+                    }
+                }
+
+
+            //return utcTimeMillis > System.currentTimeMillis() //  <- this is for only past dates
+            } },
+        initialSelectedDateMillis = convertDateToMillis(curr)?: (if (isStartDate) {System.currentTimeMillis()} else {
+            convertDateToMillis(maxMin)?.let { addDayish(it) } ?: System.currentTimeMillis() })
+    )
+
 
     val selectedDate = datePickerState.selectedDateMillis?.let {
         convertMillisToDate(it)
@@ -395,4 +429,19 @@ fun MyDatePickerDialog(
 private fun convertMillisToDate(millis: Long): String {
     val formatter = SimpleDateFormat("dd/MM/yyyy")
     return formatter.format(Date(millis))
+}
+
+private fun convertDateToMillis(dateString: String): Long? {
+    var date = Date()
+    val formatter = SimpleDateFormat("dd/MM/yyyy")
+    try {
+        date = formatter.parse(dateString)
+    } catch (e: ParseException) {
+        return null
+    }
+    return addDayish(date.getTime())
+}
+
+private fun addDayish(millis: Long): Long {
+    return millis + 86400000
 }

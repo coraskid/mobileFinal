@@ -23,13 +23,13 @@ fun DetailScreen(
     itin: String
 ) {
     Column {
-        Text(text = String.format("%S %S", stringResource(R.string.destination), place))
+        Text(text = String.format("%s %s", stringResource(R.string.destination), place))
         Spacer(modifier = Modifier.height(5.dp))
-        Text(text = String.format("%S %S", stringResource(R.string.arriving), start))
+        Text(text = String.format("%s %s", stringResource(R.string.arriving), start))
         Spacer(modifier = Modifier.height(5.dp))
-        Text(text = String.format("%S %S", stringResource(R.string.departing), end))
+        Text(text = String.format("%s %s", stringResource(R.string.departing), end))
         Spacer(modifier = Modifier.height(5.dp))
-        Text(text = String.format("%S %S",
+        Text(text = String.format("%s %s",
             stringResource(R.string.additional_comments_requested), comments))
         Spacer(modifier = Modifier.height(5.dp))
         Text(text = stringResource(R.string.itinerary))
@@ -42,3 +42,8 @@ fun DetailScreen(
     }
 }
 
+@Preview
+@Composable
+fun DetailScreenPreview() {
+    DetailScreen(place = "Paris", start = "123", end = "345", comments = "none", itin = "this is itin")
+}
